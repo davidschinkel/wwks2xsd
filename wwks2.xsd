@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:simpleType name="boolType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="True" />
+      <xs:enumeration value="False" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="stateType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Ready" />
+      <xs:enumeration value="NotReady" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="handlingType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Allowed" />
+      <xs:enumeration value="AllowedForFridge" />
+      <xs:enumeration value="Rejected" />
+      <xs:enumeration value="RejectedNoExpiryDate" />
+      <xs:enumeration value="RejectedNoPickingIndicator" />
+      <xs:enumeration value="RejectedNoBatchNumber" />
+      <!-- TODO      noch nicht fertig -->
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Elements in Messages -->
+
+  <xs:complexType name="Capability">
+    <xs:attribute name="Name" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="KeepAlive" />
+          <xs:enumeration value="Status" />
+          <xs:enumeration value="Input" />
+          <xs:enumeration value="InitiateInput" />
+          <xs:enumeration value="ArticleMaster" />
+          <xs:enumeration value="StockDelivery" />
+          <xs:enumeration value="StockInfo" />
+          <xs:enumeration value="Output" />
+          <xs:enumeration value="TaskInfo" />
+          <xs:enumeration value="TaskCancel" />
+          <xs:enumeration value="Configuration" />
+          <xs:enumeration value="StockLocationInfo" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="Subscriber">
+    <xs:sequence>
+      <xs:element name="Capability" type="Capability" minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute name="Id" type="xs:positiveInteger" use="required" />
+    <xs:attribute name="Type" type="xs:string" use="required" />
+    <xs:attribute name="Manufacturer" type="xs:string" use="required" />
+    <xs:attribute name="ProductInfo" type="xs:string" use="required" />
+    <xs:attribute name="VersionInfo" type="xs:string" use="required" />
+    <xs:attribute name="TenantId" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="Component">
+    <xs:attribute name="Type" type="xs:string" use="required" />
+    <xs:attribute name="Description" type="xs:string" use="required" />
+    <xs:attribute name="State" type="stateType" use="required" />
+    <xs:attribute name="StateText" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="Article">
+    <xs:sequence>
+      <xs:element name="Pack" type="Pack" />
+    </xs:sequence>
+    <xs:attribute name="Id" type="xs:string" />
+    <xs:attribute name="Name" type="xs:string" />
+    <xs:attribute name="DosageForm" type="xs:string" />
+    <xs:attribute name="PackagingUnit" type="xs:string" />
+    <xs:attribute name="MaxSubitemQuantity" type="xs:integer" />
+    <xs:attribute name="Quantity" type="xs:integer" />
+    <xs:attribute name="FMDId" type="xs:string" />
+    <xs:attribute name="RequiresFridge" type="boolType" />
+    <!-- TODO Datumsformat -->
+    <xs:attribute name="SerialNumberSinceExpiryDate" type="xs:date" />
+  </xs:complexType>
+
+  <xs:complexType name="Pack">
+    <!-- TODO: Index >= 0 -->
+    <xs:attribute name="Index" type="xs:integer" />
+    <xs:attribute name="ScanCode" type="xs:string" use="required" />
+    <xs:attribute name="DeliveryNumber" type="stateType" />
+    <xs:attribute name="BatchNumber" type="xs:string" />
+    <xs:attribute name="ExternalId" type="xs:string" />
+    <xs:attribute name="ExpiryDate" type="xs:string" />
+    <!-- TODO: SubItemQuantity >= 0 -->
+    <xs:attribute name="SubItemQuantity" type="xs:integer" />
+    <xs:attribute name="StockLocationId" type="xs:string" />
+    <xs:attribute name="MachineLocation" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="Handling">
+    <xs:attribute name="Input" type="handlingType" use="required" />
+    <xs:attribute name="Text" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="Details">
+    <xs:attribute name="InputSource" type="xs:integer" use="required" />
+    <xs:attribute name="InputPoint" type="xs:integer" />
+  </xs:complexType>
+
+  <xs:complexType name="SetResult">
+    <xs:attribute name="Value" type="xs:string" use="required" />
+    <xs:attribute name="Text" type="xs:string" />
+  </xs:complexType>
+
+  <xs:complexType name="StockDelivery">
+    <xs:sequence>
+      <xs:element name="Article" type="Article" />
+    </xs:sequence>
+    <xs:attribute name="DeliveryNumber" type="xs:string" use="required" />
+  </xs:complexType>
+
+
+  <!-- Messages -->
+
+  <!-- Initialization -->
+  <xs:element name="HelloRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Subscriber" type="Subscriber" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="HelloResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Subscriber" type="Subscriber" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Keepalive -->
+  <xs:element name="KeepAliveRequest">
+    <xs:complexType>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="KeepAliveResponse">
+    <xs:complexType>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <!-- System status -->
+  <xs:element name="StatusRequest">
+    <xs:complexType>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="IncludeDetails" type="boolType" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="StatusResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Component" type="Component" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="State" type="stateType" use="required" />
+      <xs:attribute name="StateText" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Input system-->
+  <xs:element name="InputRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Article" type="Article" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="isNewDelivery" type="boolType" />
+      <xs:attribute name="SetPickingIndicator" type="boolType" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="InputResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Article" type="Article" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="isNewDelivery" type="boolType" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="InputMessage">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Article" type="Article" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="isNewDelivery" type="boolType" />
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Stock input initiation-->
+  <xs:element name="InitiateInputRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Details" type="Details" />
+        <xs:element name="Article" type="Article" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="isNewDelivery" type="boolType" />
+      <xs:attribute name="SetPickingIndicator" type="boolType" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="InitiateInputResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Details" type="Details" />
+        <xs:element name="Article" type="Article" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="isNewDelivery" type="boolType" />
+      <xs:attribute name="SetPickingIndicator" type="boolType" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="InitiateInputMessage">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Details" type="Details" />
+        <xs:element name="Article" type="Article" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="isNewDelivery" type="boolType" />
+    </xs:complexType>
+  </xs:element>
+
+  <!-- MasterData-->
+  <xs:element name="ArticleMasterSetRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Article" type="Article" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="ArticleMasterSetResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="SetResult" type="SetResult" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="StockDeliverySetRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="StockDelivery" type="StockDelivery" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="StockDeliverySetResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="SetResult" type="SetResult" />
+      </xs:sequence>
+      <xs:attribute name="Id" type="xs:string" use="required" />
+      <xs:attribute name="Source" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="Destination" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+
+</xs:schema> 
